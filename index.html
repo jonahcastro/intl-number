@@ -24,20 +24,22 @@
     <span id="error-msg" class="hide"></span>
     <button type="buttton" onclick="displayOutput();">Submit</button>
 <!--  </form>-->
-
+    
+    <div id="display-value"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
   <script src="assets/js/intlTelInput.js"></script>
+  <script src="assets/js/cleave.js"></script>
+  <script src="assets/js/cleave-phone.i18n.js"></script>
   <script>
     var input = document.querySelector("#phone"),
     errorMsg = document.querySelector("#error-msg"),
-    validMsg = document.querySelector("#valid-msg");
+    validMsg = document.querySelector("#valid-msg"),
+    display = document.querySelector("#display-value");
     var countryData = window.intlTelInputGlobals.getCountryData();
-      
+    var cleave;
+    
     var errorMap = ["Invalid number", "Invalid country code", "Too short", "Too long", "Invalid number"];
-    for (var i = 0; i < countryData.length; i++) {
-      var country = countryData[i];
-        console.log(country)
-      country.name = country.name.replace(/.+\((.+)\)/,"$1");
-    }
+  //international tel input plugin initialisation    
     var iti = window.intlTelInput(input, {
         allowDropdown: true,
         formatOnDisplay: true,
@@ -48,15 +50,53 @@
         initialCountry: "us",
         utilsScript: "assets/js/utils.js",
     });
+      
+    //auto formatting value
+      
+
+   $( document ).ready(function() {
+         cleave = new Cleave('#phone', {
+            phone: true,
+            phoneRegionCode: iti.getSelectedCountryData().iso2
+         });
+       console.log(cleave.getRawValue());
+    });
+      
+    
+       input.addEventListener("countrychange", function() {
+          // do something with iti.getSelectedCountryData()
+          input.value = "";
+          console.log(iti.getSelectedCountryData().iso2);
+          console.log($('#phone').length);
+          
+          if ($('#phone').length) {
+             var cleave2 = new Cleave('#phone', {
+                phone: true,
+                phoneRegionCode: iti.getSelectedCountryData().iso2
+             });
+            console.log(cleave2.getRawValue());
+          }
+           cleave2.setRawValue("");
+//          console.log(cleave2.destroy());
+//           console.log(cleave2.getRawValue());
+          //cleave.setRawValue("");
+//               cleave.setPhoneRegionCode(iti.getSelectedCountryData().iso2);
+
+        });
+      
+  //reset all value      
     var reset = function() {
       input.classList.remove("error");
+      display.innerHTML = "";
       errorMsg.innerHTML = "";
       errorMsg.classList.add("hide");
       validMsg.classList.add("hide");
     };
-
+      
+    //phone number validation
     // on blur: validate
     input.addEventListener('blur', function() {
+       
       reset();
       if (input.value.trim()) {
         if (iti.isValidNumber()) {
@@ -72,10 +112,16 @@
 
     // on keyup / change flag: reset
     input.addEventListener('change', reset);
+    input.addEventListener('keyup', reset);
+    // 
+    function displayOutput(){
+        if(iti.isValidNumber()){
+            reset();
+            display.innerHTML = "<br>Country Name: " + iti.getSelectedCountryData().name + "<br> Country Code: " + iti.getSelectedCountryData().iso2 + "<br> Phone Number: " +iti.getNumber();
+        }
+    //         console.log(iti.getInstance());
+    }
       
-      function displayOutput(){
-         console.log(iti.getNumber());
-      }
   </script>
 </body>
 
